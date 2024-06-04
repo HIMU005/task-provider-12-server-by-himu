@@ -42,6 +42,23 @@ async function run() {
       res.send({ token });
     });
 
+    // Verify Token Middleware
+    const verifyToken = async (req, res, next) => {
+      const token = req.cookies?.token;
+      console.log(token);
+      if (!token) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          console.log(err);
+          return res.status(401).send({ message: "unauthorized access" });
+        }
+        req.user = decoded;
+        next();
+      });
+    };
+
     // save the new user document in database
     app.post("/users", async (req, res) => {
       const userData = req.body;
