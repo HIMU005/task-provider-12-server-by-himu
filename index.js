@@ -32,6 +32,7 @@ async function run() {
   try {
     // collections
     const userCollection = client.db("taskProvider").collection("users");
+    const taskCollection = client.db("taskProvider").collection("tasks");
 
     // jwt relate api
     app.post("/jwt", async (req, res) => {
@@ -70,6 +71,13 @@ async function run() {
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const result = await userCollection.findOne({ email });
+      res.send(result);
+    });
+
+    // add task details in the db
+    app.post("/tasks", async (req, res) => {
+      const taskData = req.body;
+      const result = await taskCollection.insertOne(taskData);
       res.send(result);
     });
 
