@@ -74,6 +74,18 @@ async function run() {
       res.send(result);
     });
 
+    // update the coin information in for a single user
+    app.patch("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const updateData = req.body;
+      const filter = { email };
+      const updateDoc = {
+        $set: { coin: updateData.newCoin },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     // add task details in the db
     app.post("/tasks", async (req, res) => {
       const taskData = req.body;
