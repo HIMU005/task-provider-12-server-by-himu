@@ -30,6 +30,9 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
+    // collections
+    const userCollection = client.db("taskProvider").collection("users");
+
     // jwt relate api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -37,6 +40,20 @@ async function run() {
         expiresIn: "3h",
       });
       res.send({ token });
+    });
+
+    // save the new user document in database
+    app.post("/users", async (req, res) => {
+      const userData = req.body;
+      const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
+
+    // get an user role
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await userCollection.findOne({ email });
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
