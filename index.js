@@ -93,10 +93,35 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/task/:email", async (req, res) => {
+    // all posted task by a user
+    app.get("/tasks/:email", async (req, res) => {
       const email = req.params.email;
       const query = { "taskProvider.email": email };
       const result = await taskCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // single task by Id
+    app.get("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.patch("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateData = req.body;
+      const updateDoc = {
+        $set: {
+          taskName: updateData.taskName,
+          subInfo: updateData.subInfo,
+          taskDetails: updateData.taskDetails,
+        },
+      };
+      console.log(updateDoc);
+      const result = await taskCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 
