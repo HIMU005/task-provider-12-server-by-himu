@@ -134,9 +134,19 @@ async function run() {
       res.send(result);
     });
 
+    // submission details save in database
     app.post("/submissions", async (req, res) => {
       const submitData = req.body;
       const result = await submissionCollection.insertOne(submitData);
+      res.send(result);
+    });
+
+    // get all submission by a user
+    app.get("/submissions/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await submissionCollection
+        .find({ workerEmail: email })
+        .toArray();
       res.send(result);
     });
 
