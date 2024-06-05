@@ -93,6 +93,13 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/task/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { "taskProvider.email": email };
+      const result = await taskCollection.find(query).toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
