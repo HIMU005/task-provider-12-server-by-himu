@@ -33,6 +33,7 @@ async function run() {
   try {
     // collections
     const userCollection = client.db("taskProvider").collection("users");
+    const withDrawCollection = client.db("taskProvider").collection("withDraw");
     const taskCollection = client.db("taskProvider").collection("tasks");
     const purchaseCollection = client
       .db("taskProvider")
@@ -230,13 +231,13 @@ async function run() {
       res.send(result);
     });
 
-    // delete submission
-    // app.delete("/submission/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await submissionCollection.deleteOne(query);
-    //   res.send(result);
-    // });
+    // save withdraw data
+    app.post("/withDraw", async (req, res) => {
+      const withDrawData = req.body;
+      console.log(withDrawData);
+      const result = await withDrawCollection.insertOne(withDrawData);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
