@@ -142,7 +142,6 @@ async function run() {
     app.patch("/user/role/:email", async (req, res) => {
       const email = req.params.email;
       const { newRole } = req.body;
-      console.log(newRole, email);
       const updateDoc = {
         $set: { role: newRole },
       };
@@ -179,6 +178,7 @@ async function run() {
       res.send(result);
     });
 
+    // update task details
     app.patch("/task/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -210,6 +210,33 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    // get all submissions
+    app.get("/submissions", async (req, res) => {
+      const result = await submissionCollection.find().toArray();
+      res.send(result);
+    });
+
+    // update status
+    app.patch("/submission/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const { status } = req.body;
+      console.log(status);
+      const updateDoc = {
+        $set: { status },
+      };
+      const result = await submissionCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    // delete submission
+    // app.delete("/submission/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await submissionCollection.deleteOne(query);
+    //   res.send(result);
+    // });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
