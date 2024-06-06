@@ -100,6 +100,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/purchase-coin/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await purchaseCollection.find({ email }).toArray();
+      res.send(result);
+    });
+
     // save the new user document in database
     app.post("/users", async (req, res) => {
       const userData = req.body;
