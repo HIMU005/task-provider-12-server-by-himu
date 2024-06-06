@@ -5,8 +5,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
-const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const port = process.env.PORT || 5000;
 
 // middleware
 const corsOptions = {
@@ -35,7 +35,7 @@ async function run() {
     const userCollection = client.db("taskProvider").collection("users");
     const taskCollection = client.db("taskProvider").collection("tasks");
     const purchaseCollection = client
-      .db("purchaseProvider")
+      .db("taskProvider")
       .collection("purchases");
     const submissionCollection = client
       .db("taskProvider")
@@ -69,9 +69,10 @@ async function run() {
 
     // create-payment-intent
     app.post("/create-payment-intent", async (req, res) => {
-      const price = req.body.price;
+      const price = req.body.price.price;
+
       const priceInCent = parseFloat(price) * 100;
-      if (!price || priceInCent < 1) return;
+      // if (!price || priceInCent < 1) return;
       // generate clientSecret
       const { client_secret } = await stripe.paymentIntents.create({
         amount: priceInCent,
@@ -80,15 +81,22 @@ async function run() {
         automatic_payment_methods: {
           enabled: true,
         },
+        // payment_method_types: ["card"],
       });
       // send client secret as response
       res.send({ clientSecret: client_secret });
     });
 
     // save purchase coin information in database
-    app.post("/purchase-coin", async (res, req) => {
+    app.post("/purchase-coin", async (req, res) => {
       const purchaseInfo = req.body;
       const result = await purchaseCollection.insertOne(purchaseInfo);
+      res.send(result);
+    });
+
+    // get purchase information
+    app.get("/purchase-coin", async (req, res) => {
+      const result = await purchaseCollection.find().toArray();
       res.send(result);
     });
 
@@ -96,6 +104,12 @@ async function run() {
     app.post("/users", async (req, res) => {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
+
+    // get all user data
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
       res.send(result);
     });
 
@@ -115,6 +129,18 @@ async function run() {
         $set: { coin: updateData.newCoin },
       };
       const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    // update role of an user
+    app.patch("/user/role/:email", async (req, res) => {
+      const email = req.params.email;
+      const { newRole } = req.body;
+      console.log(newRole, email);
+      const updateDoc = {
+        $set: { role: newRole },
+      };
+      const result = await userCollection.updateOne({ email }, updateDoc);
       res.send(result);
     });
 
