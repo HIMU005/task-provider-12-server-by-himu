@@ -55,7 +55,6 @@ async function run() {
     // Verify Token Middleware
     const verifyToken = async (req, res, next) => {
       const token = req.cookies?.token;
-      console.log(token);
       if (!token) {
         return res.status(401).send({ message: "unauthorized access" });
       }
@@ -67,6 +66,34 @@ async function run() {
         req.user = decoded;
         next();
       });
+    };
+
+    // verify admin
+    const verifyAdmin = async (req, res, next) => {
+      const user = req.user;
+      const query = { email: user?.email };
+      const result = await userCollection.findOne(query);
+      console.log(result?.role);
+      if (!result || result?.role !== "admin") {
+        return res
+          .status(403)
+          .send({ message: "unauthorized access.........." });
+      }
+      next();
+    };
+
+    // verify taskCreator
+    const verifyTaskCreator = async (req, res, next) => {
+      const user = req.user;
+      const query = { email: user?.email };
+      const result = await userCollection.findOne(query);
+      console.log(result?.role);
+      if (!result || result?.role !== "task-creator") {
+        return res
+          .status(403)
+          .send({ message: "unauthorized access.........." });
+      }
+      next();
     };
 
     // get all hero data
