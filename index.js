@@ -34,6 +34,7 @@ async function run() {
     // collections
     const userCollection = client.db("taskProvider").collection("users");
     const withDrawCollection = client.db("taskProvider").collection("withDraw");
+    const heroCollection = client.db("taskProvider").collection("Hero");
     const taskCollection = client.db("taskProvider").collection("tasks");
     const purchaseCollection = client
       .db("taskProvider")
@@ -67,6 +68,12 @@ async function run() {
         next();
       });
     };
+
+    // get all hero data
+    app.get("/hero", async (req, res) => {
+      const result = await heroCollection.find().toArray();
+      res.send(result);
+    });
 
     // create-payment-intent
     app.post("/create-payment-intent", async (req, res) => {
@@ -236,6 +243,12 @@ async function run() {
       const withDrawData = req.body;
       console.log(withDrawData);
       const result = await withDrawCollection.insertOne(withDrawData);
+      res.send(result);
+    });
+
+    // get all withdraw request data
+    app.get("/withDraw", async (req, res) => {
+      const result = await withDrawCollection.find().toArray();
       res.send(result);
     });
 
