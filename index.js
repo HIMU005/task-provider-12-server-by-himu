@@ -66,19 +66,6 @@ async function run() {
         req.decoded = decoded;
         next();
       });
-
-      // const token = req.cookies?.token;
-      // if (!token) {
-      //   return res.status(401).send({ message: "unauthorized access" });
-      // }
-      // jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-      //   if (err) {
-      //     console.log(err);
-      //     return res.status(401).send({ message: "unauthorized access" });
-      //   }
-      //   req.user = decoded;
-      //   next();
-      // });
     };
 
     // verify admin
@@ -219,7 +206,7 @@ async function run() {
     });
 
     // single task by Id
-    app.get("/task/:id", async (req, res) => {
+    app.get("/task/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await taskCollection.findOne(query);
@@ -252,14 +239,14 @@ async function run() {
     });
 
     // submission details save in database
-    app.post("/submissions", async (req, res) => {
+    app.post("/submissions", verifyToken, async (req, res) => {
       const submitData = req.body;
       const result = await submissionCollection.insertOne(submitData);
       res.send(result);
     });
 
     // get all submission by a user
-    app.get("/submissions/:email", async (req, res) => {
+    app.get("/submissions/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const result = await submissionCollection
         .find({ workerEmail: email })
@@ -287,7 +274,7 @@ async function run() {
     });
 
     // save withdraw data
-    app.post("/withDraw", async (req, res) => {
+    app.post("/withDraw", verifyToken, async (req, res) => {
       const withDrawData = req.body;
       console.log(withDrawData);
       const result = await withDrawCollection.insertOne(withDrawData);
