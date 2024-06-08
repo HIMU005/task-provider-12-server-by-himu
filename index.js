@@ -164,7 +164,7 @@ async function run() {
     });
 
     // get all user data
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -177,7 +177,7 @@ async function run() {
     });
 
     // update the coin information in for a single user
-    app.patch("/user/:email", async (req, res) => {
+    app.patch("/user/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const updateData = req.body;
       const filter = { email };
@@ -189,15 +189,20 @@ async function run() {
     });
 
     // update role of an user
-    app.patch("/user/role/:email", async (req, res) => {
-      const email = req.params.email;
-      const { newRole } = req.body;
-      const updateDoc = {
-        $set: { role: newRole },
-      };
-      const result = await userCollection.updateOne({ email }, updateDoc);
-      res.send(result);
-    });
+    app.patch(
+      "/user/role/:email",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const email = req.params.email;
+        const { newRole } = req.body;
+        const updateDoc = {
+          $set: { role: newRole },
+        };
+        const result = await userCollection.updateOne({ email }, updateDoc);
+        res.send(result);
+      }
+    );
 
     // add task details in the db
     app.post("/tasks", async (req, res) => {
@@ -301,12 +306,12 @@ async function run() {
     });
 
     // get all withdraw request data
-    app.get("/withDraw", async (req, res) => {
+    app.get("/withDraw", verifyToken, verifyAdmin, async (req, res) => {
       const result = await withDrawCollection.find().toArray();
       res.send(result);
     });
 
-    app.delete("/withDraw/:id", async (req, res) => {
+    app.delete("/withDraw/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await withDrawCollection.deleteOne(query);
