@@ -54,7 +54,6 @@ async function run() {
 
     // Verify Token Middleware
     const verifyToken = async (req, res, next) => {
-      console.log(57, req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "unauthorized access" });
       }
@@ -64,35 +63,36 @@ async function run() {
           return res.status(401).send({ message: "unauthorized access" });
         }
         req.decoded = decoded;
+        console.log("verify token ok");
         next();
       });
     };
 
     // verify admin
     const verifyAdmin = async (req, res, next) => {
-      const user = req.user;
-      const query = { email: user?.email };
+      const user = req.decoded.email;
+      const query = { email: user };
       const result = await userCollection.findOne(query);
-      console.log(result?.role);
       if (!result || result?.role !== "admin") {
         return res
           .status(403)
           .send({ message: "unauthorized access.........." });
       }
+      console.log("admin ok");
       next();
     };
 
     // verify taskCreator
     const verifyTaskCreator = async (req, res, next) => {
-      const user = req.user;
-      const query = { email: user?.email };
+      const user = req.decoded.email;
+      const query = { email: user };
       const result = await userCollection.findOne(query);
-      console.log(result?.role);
       if (!result || result?.role !== "task-creator") {
         return res
           .status(403)
           .send({ message: "unauthorized access.........." });
       }
+      console.log("creator ok");
       next();
     };
 
@@ -103,37 +103,52 @@ async function run() {
     });
 
     // create-payment-intent
-    app.post("/create-payment-intent", async (req, res) => {
-      const price = req.body.price.price;
+    app.post(
+      "/create-payment-intent",
+      verifyToken,
+      verifyTaskCreator,
+      async (req, res) => {
+        const price = req.body.price.price;
 
-      const priceInCent = parseFloat(price) * 100;
-      // if (!price || priceInCent < 1) return;
-      // generate clientSecret
-      const { client_secret } = await stripe.paymentIntents.create({
-        amount: priceInCent,
-        currency: "usd",
-        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-        automatic_payment_methods: {
-          enabled: true,
-        },
-        // payment_method_types: ["card"],
-      });
-      // send client secret as response
-      res.send({ clientSecret: client_secret });
-    });
+        const priceInCent = parseFloat(price) * 100;
+        // if (!price || priceInCent < 1) return;
+        // generate clientSecret
+        const { client_secret } = await stripe.paymentIntents.create({
+          amount: priceInCent,
+          currency: "usd",
+          // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+          automatic_payment_methods: {
+            enabled: true,
+          },
+          // payment_method_types: ["card"],
+        });
+        // send client secret as response
+        res.send({ clientSecret: client_secret });
+      }
+    );
 
     // save purchase coin information in database
-    app.post("/purchase-coin", async (req, res) => {
-      const purchaseInfo = req.body;
-      const result = await purchaseCollection.insertOne(purchaseInfo);
-      res.send(result);
-    });
+    app.post(
+      "/purchase-coin",
+      verifyToken,
+      verifyTaskCreator,
+      async (req, res) => {
+        const purchaseInfo = req.body;
+        const result = await purchaseCollection.insertOne(purchaseInfo);
+        res.send(result);
+      }
+    );
 
     // get purchase information
-    app.get("/purchase-coin", async (req, res) => {
-      const result = await purchaseCollection.find().toArray();
-      res.send(result);
-    });
+    app.get(
+      "/purchase-coin",
+      verifyToken,
+      verifyTaskCreator,
+      async (req, res) => {
+        const result = await purchaseCollection.find().toArray();
+        res.send(result);
+      }
+    );
 
     app.get("/purchase-coin/:email", async (req, res) => {
       const email = req.params.email;
@@ -192,24 +207,30 @@ async function run() {
     });
 
     // get all tasks
-    app.get("/tasks", verifyToken, async (req, res) => {
+    app.get("/tasks", async (req, res) => {
       const result = await taskCollection.find().toArray();
       res.send(result);
     });
 
-    // all posted task by a user
-    app.get("/tasks/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { "taskProvider.email": email };
-      const result = await taskCollection.find(query).toArray();
-      res.send(result);
-    });
+    // all posted task by a user task creator
+    app.get(
+      "/tasks/:email",
+      verifyToken,
+      verifyTaskCreator,
+      async (req, res) => {
+        const email = req.params.email;
+        const query = { "taskProvider.email": email };
+        const result = await taskCollection.find(query).toArray();
+        res.send(result);
+      }
+    );
 
     // single task by Id
     app.get("/task/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await taskCollection.findOne(query);
+      console.log(result);
       res.send(result);
     });
 
@@ -222,7 +243,7 @@ async function run() {
     });
 
     // update task details
-    app.patch("/task/:id", async (req, res) => {
+    app.patch("/task/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateData = req.body;
@@ -233,7 +254,7 @@ async function run() {
           taskDetails: updateData.taskDetails,
         },
       };
-      console.log(updateDoc);
+      // console.log(updateDoc);
       const result = await taskCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
@@ -265,7 +286,6 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const { status } = req.body;
-      console.log(status);
       const updateDoc = {
         $set: { status },
       };
@@ -276,7 +296,6 @@ async function run() {
     // save withdraw data
     app.post("/withDraw", verifyToken, async (req, res) => {
       const withDrawData = req.body;
-      console.log(withDrawData);
       const result = await withDrawCollection.insertOne(withDrawData);
       res.send(result);
     });
