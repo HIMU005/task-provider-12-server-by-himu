@@ -34,7 +34,7 @@ async function run() {
     // collections
     const userCollection = client.db("taskProvider").collection("users");
     const withDrawCollection = client.db("taskProvider").collection("withDraw");
-    const heroCollection = client.db("taskProvider").collection("Hero");
+    const heroCollection = client.db("taskProvider").collection("hero");
     const taskCollection = client.db("taskProvider").collection("tasks");
     const purchaseCollection = client
       .db("taskProvider")
