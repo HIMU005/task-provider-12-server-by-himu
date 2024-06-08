@@ -54,18 +54,31 @@ async function run() {
 
     // Verify Token Middleware
     const verifyToken = async (req, res, next) => {
-      const token = req.cookies?.token;
-      if (!token) {
+      console.log(57, req.headers.authorization);
+      if (!req.headers.authorization) {
         return res.status(401).send({ message: "unauthorized access" });
       }
+      const token = req.headers.authorization;
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          console.log(err);
           return res.status(401).send({ message: "unauthorized access" });
         }
-        req.user = decoded;
+        req.decoded = decoded;
         next();
       });
+
+      // const token = req.cookies?.token;
+      // if (!token) {
+      //   return res.status(401).send({ message: "unauthorized access" });
+      // }
+      // jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      //   if (err) {
+      //     console.log(err);
+      //     return res.status(401).send({ message: "unauthorized access" });
+      //   }
+      //   req.user = decoded;
+      //   next();
+      // });
     };
 
     // verify admin
@@ -192,7 +205,7 @@ async function run() {
     });
 
     // get all tasks
-    app.get("/tasks", async (req, res) => {
+    app.get("/tasks", verifyToken, async (req, res) => {
       const result = await taskCollection.find().toArray();
       res.send(result);
     });
