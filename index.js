@@ -337,10 +337,61 @@ async function run() {
       res.send(result);
     });
 
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
+    // Admin Statistics
+    app.get("/admin-stat", verifyToken, verifyAdmin, async (req, res) => {
+      const totalUsers = await userCollection.countDocuments();
+      const totalSubmission = await submissionCollection.countDocuments();
+      const totalPurchase = await purchaseCollection.countDocuments();
+      const totalTask = await taskCollection.countDocuments();
+      res.send({
+        totalUsers,
+        totalSubmission,
+        totalPurchase,
+        totalTask,
+      });
+    });
+
+    // worker creator Statistics
+    app.get(
+      "/taskCreator-stat",
+      verifyToken,
+      verifyTaskCreator,
+      async (req, res) => {
+        const { email } = req.body;
+        console.log(email);
+
+        const totalPurchase = await purchaseCollection.countDocuments(email);
+        const totalSubmission = await submissionCollection.countDocuments({
+          "taskProvider.email": email,
+        });
+        const totalTask = await taskCollection.countDocuments({
+          "taskProvider.email": email,
+        });
+        // console.log(totalTask);
+        res.send({
+          totalPurchase,
+          totalSubmission,
+          totalTask,
+        });
+      }
+    );
+
+    //  worker Statistics
+    app.get("/worker-stat", verifyToken, async (req, res) => {
+      const email = "hashanuzzaman99@gmail.com";
+
+      const totalSubmission = await submissionCollection.countDocuments({
+        "worker.email": email,
+      });
+      const totalWithDraw = await withDrawCollection.countDocuments({
+        workerEmail: email,
+      });
+      // console.log(totalTask);
+      res.send({
+        totalSubmission,
+        totalWithDraw,
+      });
+    });
   } finally {
   }
 }
