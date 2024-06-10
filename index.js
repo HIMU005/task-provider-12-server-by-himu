@@ -38,6 +38,9 @@ async function run() {
     // collections
     const userCollection = client.db("taskProvider").collection("users");
     const withDrawCollection = client.db("taskProvider").collection("withDraw");
+    const testimonialCollection = client
+      .db("taskProvider")
+      .collection("testimonial");
     const heroCollection = client.db("taskProvider").collection("hero");
     const taskCollection = client.db("taskProvider").collection("tasks");
     const purchaseCollection = client
@@ -131,6 +134,12 @@ async function run() {
       }
     );
 
+    // get all testimonial data
+    app.get("/testimonial", async (req, res) => {
+      const result = await testimonialCollection.find().toArray();
+      res.send(result);
+    });
+
     // save purchase coin information in database
     app.post(
       "/purchase-coin",
@@ -169,6 +178,12 @@ async function run() {
 
     // get all user data
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    // get all user data
+    app.get("/usersNormal", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
