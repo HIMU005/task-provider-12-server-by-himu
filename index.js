@@ -15,13 +15,13 @@ const corsOptions = {
     "http://localhost:5174",
     "https://work-managemnt.web.app",
   ],
-  credentials: true,
+  // credentials: true,
   optionSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
 app.use(express.json());
-app.use(cookieParser());
+// app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6xa5uzm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -322,10 +322,10 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
   }
 }
